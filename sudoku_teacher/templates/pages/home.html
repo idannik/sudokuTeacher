@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+
+  <div id="main_app">
+    <div class="container-fluid" id="soduko_board">
+      <div class="row">
+        <div class="col-lg-3">
+          <div class="row">
+            <button type="button" class="btn btn-secondary btn-lg" id="load-btn" data-url="{% url 'board:get_board' %}">Load
+            </button>
+          </div>
+          <div class="row mt-5">
+            <div class="col-md-6 bg-info pt-3">
+              <div id="suggester  pt-5">
+                <button
+                        type="button"
+                        class="btn btn-light btn-lg mt-1"
+                        id="fill-pencil-marks-btn"
+                        data-url="{% url 'board:fill_pencil_marks' %}"
+                >fill pencil marks
+                </button>
+                <button
+                        type="button"
+                        class="btn btn-dark btn-lg mt-1"
+                        id="suggest-btn"
+                >Suggest next move
+                </button>
+                <div id="reason">reason
+                  <div> reason </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="boards">
+            <div class="board" id="sudoku0">
+              {% with ''|center:9 as range %}
+              {% for i in range %}
+                <div class="square">
+                  {% for j in range %}
+
+                    <div class="cell" tabindex="0">
+
+                    </div>
+                  {% endfor %}
+
+                </div>
+              {% endfor %}
+            {% endwith %}
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% csrf_token %}
+
+{% endblock content %}

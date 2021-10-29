@@ -1,0 +1,81 @@
+/* These styles are generated from project.scss. */
+
+.alert-debug {
+  color: black;
+  background-color: white;
+  border-color: #d6e9c6;
+}
+
+.alert-error {
+  color: #b94a48;
+  background-color: #f2dede;
+  border-color: #eed3d7;
+}
+
+.empty {
+  color: blue;
+  padding: 0;
+  margin: 0;
+  background-size: cover;
+  height: 100%
+}
+
+.pencil {
+  color: black;
+  padding: 0;
+  margin: 0;
+  font-size: 20px;
+  background-size: cover;
+  height: 100%
+}
+
+.pen {
+  color: red;
+  background: darkgrey;
+  padding: 0;
+  margin: 0;
+  background-size: cover;
+  max-width: 100%; /* Maximum width */
+  height: 100%
+}
+
+.selected {
+  color: red;
+  background: yellow;
+  padding: 0;
+  margin: 0;
+  background-size: cover;
+  max-width: 100%; /* Maximum width */
+  height: 100%
+}
+
+
+.boards {
+  display: grid;
+  grid-template-columns: repeat(2, 50%);
+  gap: 3px;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 300px);
+  grid-template-rows: repeat(3, 300px);
+}
+
+.square {
+  display: grid;
+  border: black solid;
+  grid-template-columns: repeat(3, 33%);
+  grid-template-rows: repeat(3, 33%);
+}
+
+.cell {
+  border: black 1px solid;
+  font-family: monospace;
+  text-align: center;
+  font-size: 60px;
+  padding: 0;
+  margin: 0;
+  background-size: cover;
+  max-width: 100%; /* Maximum width */
+}

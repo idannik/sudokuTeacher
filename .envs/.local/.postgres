@@ -1,0 +1,7 @@
+# PostgreSQL
+# ------------------------------------------------------------------------------
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=sudoku_teacher
+POSTGRES_USER=nHMNFGuXcDtpVwZAsCaGQJAcJixywfHf
+POSTGRES_PASSWORD=D427Jmi4VQSF4XUwpPK145bYieTGUquaaqrWoZWOToHAdzh6yTyVrutWuRlY0BWa
