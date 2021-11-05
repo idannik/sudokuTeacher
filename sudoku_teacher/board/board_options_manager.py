@@ -1,7 +1,7 @@
 from collections import defaultdict
 from copy import deepcopy
 
-# from prettytable import PrettyTable
+from prettytable import PrettyTable
 
 
 class BoardOptionsManager:
@@ -191,7 +191,7 @@ class BoardOptionsManager:
                 point_to_options[point].update(option_subset)
 
     def print_options(self):
-        x = []
+        x = PrettyTable
         x.field_names = ["", 1, 2, 3, 4, 5, 6, 7, 8, 9]
         for i, row in enumerate(self.options):
             x.add_row(
