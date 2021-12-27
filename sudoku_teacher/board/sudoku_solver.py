@@ -21,15 +21,14 @@ class SudokuSuggester:
         return self.options_handler.options
 
     def solve(self):
-        while True:
-            next_steps = self.options_handler.next_step()
-            if not next_steps:
-                return
-            for (i, j), val in next_steps:
-                self.options_handler.options[i][j] = set()
-                self.board[i][j] = val
-                yield self
-                self.update_board_options_according_to_cell(i, j)
+        next_steps = self.options_handler.next_step()
+        if not next_steps:
+            return
+        for (i, j), val in next_steps:
+            self.options_handler.options[i][j] = set()
+            self.board[i][j] = val
+            yield self
+            self.update_board_options_according_to_cell(i, j)
 
     def update_board_options_according_to_cell(self, row, col):
         val = self.board[row][col]
