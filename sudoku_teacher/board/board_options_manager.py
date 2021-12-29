@@ -6,8 +6,16 @@ from prettytable import PrettyTable
 
 class BoardOptionsManager:
     def __init__(self, board=None, board_options=None):
+        if board is None:
+            board = []
+            for i in range(9):
+                board.append([0 for _ in range(9)])
+        if board_options is None:
+            board_options = []
+            for i in range(9):
+                board_options.append([{x for x in range(1, 10)} for _ in range(9)])
         self.board = board
-        self.options = board_options or []
+        self.options = board_options
 
     def init_board_options(self, board):
         for i in range(9):
