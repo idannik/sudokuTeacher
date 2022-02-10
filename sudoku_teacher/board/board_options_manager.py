@@ -3,7 +3,7 @@ from copy import deepcopy
 
 from prettytable import PrettyTable
 
-ALL_VALS = set(range(1, 10))
+ALL_VALS = frozenset(range(1, 10))
 class BoardOptionsManager:
     def __init__(self, board=None, board_options=None):
         if board is None:
@@ -13,7 +13,7 @@ class BoardOptionsManager:
         if board_options is None:
             board_options = []
             for i in range(9):
-                board_options.append([ALL_VALS for _ in range(9)])
+                board_options.append([set(ALL_VALS) for _ in range(9)])
         self.board = board
         self.options = board_options
 
