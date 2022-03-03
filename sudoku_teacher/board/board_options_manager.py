@@ -1,5 +1,6 @@
-from collections import defaultdict
+from collections import defaultdict, Set
 from copy import deepcopy
+from typing import FrozenSet, List, Optional, MutableSet
 
 from prettytable import PrettyTable
 
@@ -177,7 +178,7 @@ class BoardOptionsManager:
         for point, options in point_to_options.items():
             if len(options) <= 1:
                 continue
-            sorted_options = tuple(sorted(options))
+            sorted_options = frozenset(options)
             options_to_points[sorted_options].add(point)
         for options, points in options_to_points.items():
             if len(options) != len(points):
@@ -194,29 +195,20 @@ class BoardOptionsManager:
             for option in options:
                 options_to_points[option].add(point)
         points_subset_to_option_subset = defaultdict(set)
+
         for val, points in options_to_points.items():
             key = frozenset(points)
             points_subset_to_option_subset[key].add(val)
-        not_done = defaultdict(set)
-        for point_subset, option_subset in sorted(points_subset_to_option_subset.items(), key=sort_items_according_to_key_lengh):
-            if len(point_subset) != len(option_subset):
-                orig_option_subset = deepcopy(option_subset)
-                used_keys = []
-                for key, val in not_done.items():
-                    if key.issubset(point_subset):
-                        option_subset.update(val)
-                        used_keys.append(key)
-                if len(point_subset) != len(option_subset):
-                    not_done[point_subset] = orig_option_subset
 
-                else:
-                    for key in used_keys:
-                        not_done.pop(key)
-            for point in point_subset:
-                old_val = point_to_options[point]
-                new_val = old_val.intersection(option_subset)
-                point_to_options[point].clear()
-                point_to_options[point].update(new_val)
+        roots = []
+        for point_subset in sorted(points_subset_to_option_subset, key=lambda x: (len(x),x)):
+            options_subset = points_subset_to_option_subset[point_subset]
+            node = PointsOptionsTreeNode(point_subset, options_subset)
+            found_root = any([root.add_child(node) for root in roots])
+            if not found_root:
+                roots.append(node)
+        for root in roots:
+            root.update_hidden(point_to_options)
 
     def print_options(self):
         x = PrettyTable
@@ -229,3 +221,42 @@ class BoardOptionsManager:
                 ]
             )
         print(x)
+
+
+class PointsOptionsTreeNode:
+    def __init__(self, points: FrozenSet[int], options:MutableSet[int]):
+        self.points:FrozenSet[int] = points
+        self.options:MutableSet[int] = options
+        self.children:List['PointsOptionsTreeNode'] = []
+        self.parent:Optional['PointsOptionsTreeNode'] = None
+
+    def add_child(self, node: 'PointsOptionsTreeNode'):
+        if not self.points.issubset(node.points):
+            return False
+        found_child = any([child.add_child(node) for child in self.children])
+        if not found_child:
+            node.options.update(self.options)
+            self.children.append(node)
+            node.parent = self
+        return True
+
+    def update_hidden(self, point_to_options):
+        if len(self.options) == len(self.points):
+            for point in self.points:
+                old_val = point_to_options[point]
+                new_val = old_val.intersection(self.options)
+                point_to_options[point].clear()
+                point_to_options[point].update(new_val)
+            return
+        for child in self.children:
+            child.update_hidden(point_to_options)
+
+
+    def __str__(self):
+        return f'SubsetTreeNode(points = {self.points}, options = {self.options})'
+
+    def __repr__(self):
+        return str(self)
+
+
+
