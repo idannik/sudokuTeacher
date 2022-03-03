@@ -4,6 +4,12 @@ from copy import deepcopy
 from prettytable import PrettyTable
 
 ALL_VALS = frozenset(range(1, 10))
+
+def sort_items_according_to_key_lengh(key):
+    length = len(key[0])
+    return length, key
+
+
 class BoardOptionsManager:
     def __init__(self, board=None, board_options=None):
         if board is None:
@@ -189,14 +195,28 @@ class BoardOptionsManager:
                 options_to_points[option].add(point)
         points_subset_to_option_subset = defaultdict(set)
         for val, points in options_to_points.items():
-            key = tuple(sorted(list(points)))
+            key = frozenset(points)
             points_subset_to_option_subset[key].add(val)
-        for point_subset, option_subset in points_subset_to_option_subset.items():
+        not_done = defaultdict(set)
+        for point_subset, option_subset in sorted(points_subset_to_option_subset.items(), key=sort_items_according_to_key_lengh):
             if len(point_subset) != len(option_subset):
-                continue
+                orig_option_subset = deepcopy(option_subset)
+                used_keys = []
+                for key, val in not_done.items():
+                    if key.issubset(point_subset):
+                        option_subset.update(val)
+                        used_keys.append(key)
+                if len(point_subset) != len(option_subset):
+                    not_done[point_subset] = orig_option_subset
+
+                else:
+                    for key in used_keys:
+                        not_done.pop(key)
             for point in point_subset:
+                old_val = point_to_options[point]
+                new_val = old_val.intersection(option_subset)
                 point_to_options[point].clear()
-                point_to_options[point].update(option_subset)
+                point_to_options[point].update(new_val)
 
     def print_options(self):
         x = PrettyTable

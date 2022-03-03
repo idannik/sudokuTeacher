@@ -55,4 +55,79 @@ def test_naked_pair_fail_due_to_extra(naked_subset, extra):
     for idx in range(len(naked_subset), 9):
         assert point_to_options[(0, idx)] == ALL_VALS # naked pair was not substracted because naked pair does not exists
 
+def test_hidden_pair0():
 
+    bom = BoardOptionsManager()
+    bom.options[0][0] = {1,3,7,8}
+    bom.options[0][1] = {1,3,7,8}
+    bom.options[0][2] = {}
+    bom.options[0][3] = {}
+    bom.options[0][4] = {1, 3, 5, 9}
+    bom.options[0][5] = {1, 3, 5, 8, 9}
+    bom.options[0][6] = {}
+    bom.options[0][7] = {1, 3}
+    bom.options[0][8] = {1, 8}
+
+    point_to_options = bom.create_points_from_row(0)
+    bom.handle_hidden_subset(point_to_options)
+    assert bom.options[0][0] == {1, 3, 7, 8}
+    assert bom.options[0][1] == {1, 3, 7, 8}
+    assert bom.options[0][2] == {}
+    assert bom.options[0][3] == {}
+    assert bom.options[0][4] == {5, 9}
+    assert bom.options[0][5] == {5, 9}
+    assert bom.options[0][6] == {}
+    assert bom.options[0][7] == {1, 3}
+    assert bom.options[0][8] == {1, 8}
+
+
+def test_hidden_pair1():
+
+    bom = BoardOptionsManager()
+    bom.options[0][0] = {}
+    bom.options[0][1] = {}
+    bom.options[0][2] = {1, 5, 6, 8}
+    bom.options[0][3] = {1, 5, 6, 8}
+    bom.options[0][4] = {1, 6, 8}
+    bom.options[0][5] = {5, 6, 8}
+    bom.options[0][6] = {}
+    bom.options[0][7] = {2, 3, 5}
+    bom.options[0][8] = {2, 3 ,5}
+
+    point_to_options = bom.create_points_from_row(0)
+    bom.handle_hidden_subset(point_to_options)
+    assert bom.options[0][0] == {}
+    assert bom.options[0][1] == {}
+    assert bom.options[0][2] == {1, 5, 6, 8}
+    assert bom.options[0][3] == {1, 5, 6, 8}
+    assert bom.options[0][4] == {1, 6, 8}
+    assert bom.options[0][5] == {5, 6, 8}
+    assert bom.options[0][6] == {}
+    assert bom.options[0][7] == {2, 3}
+    assert bom.options[0][8] == {2, 3}
+
+
+def test_hidden_triple0():
+
+    bom = BoardOptionsManager()
+    bom.options[0][0] = {}
+    bom.options[0][1] = {}
+    bom.options[0][2] = {1, 2, 4, 5}
+    bom.options[0][3] = {7, 9}
+    bom.options[0][4] = {4, 6, 7}
+    bom.options[0][5] = {4, 6, 7, 9}
+    bom.options[0][6] = {1, 2, 4, 5, 6, 7}
+    bom.options[0][7] = {1, 2 ,4, 6, 7, 9}
+    bom.options[0][8] = {4, 7, 9}
+
+    point_to_options = bom.create_points_from_row(0)
+    bom.handle_hidden_subset(point_to_options)
+    assert bom.options[0][0] == {}
+    assert bom.options[0][1] == {}
+    assert bom.options[0][2] == {1, 2, 5}
+    assert bom.options[0][3] == {7, 9}
+    assert bom.options[0][4] == {4, 6, 7}
+    assert bom.options[0][5] == {4, 6, 7, 9}
+    assert bom.options[0][6] == {1, 2, 5}
+    assert bom.options[0][7] == {1, 2}
+    assert bom.options[0][8] == {4, 7, 9}
