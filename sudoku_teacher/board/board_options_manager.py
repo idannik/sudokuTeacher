@@ -6,6 +6,7 @@ from prettytable import PrettyTable
 
 ALL_VALS = frozenset(range(1, 10))
 
+
 def sort_items_according_to_key_lengh(key):
     length = len(key[0])
     return length, key
@@ -201,7 +202,9 @@ class BoardOptionsManager:
             points_subset_to_option_subset[key].add(val)
 
         roots = []
-        for point_subset in sorted(points_subset_to_option_subset, key=lambda x: (len(x),x)):
+        for point_subset in sorted(
+            points_subset_to_option_subset, key=lambda x: (len(x), x)
+        ):
             options_subset = points_subset_to_option_subset[point_subset]
             node = PointsOptionsTreeNode(point_subset, options_subset)
             found_root = any([root.add_child(node) for root in roots])
@@ -224,13 +227,13 @@ class BoardOptionsManager:
 
 
 class PointsOptionsTreeNode:
-    def __init__(self, points: FrozenSet[int], options:MutableSet[int]):
-        self.points:FrozenSet[int] = points
-        self.options:MutableSet[int] = options
-        self.children:List['PointsOptionsTreeNode'] = []
-        self.parent:Optional['PointsOptionsTreeNode'] = None
+    def __init__(self, points: FrozenSet[int], options: MutableSet[int]):
+        self.points: FrozenSet[int] = points
+        self.options: MutableSet[int] = options
+        self.children: List["PointsOptionsTreeNode"] = []
+        self.parent: Optional["PointsOptionsTreeNode"] = None
 
-    def add_child(self, node: 'PointsOptionsTreeNode'):
+    def add_child(self, node: "PointsOptionsTreeNode"):
         if not self.points.issubset(node.points):
             return False
         found_child = any([child.add_child(node) for child in self.children])
@@ -251,12 +254,8 @@ class PointsOptionsTreeNode:
         for child in self.children:
             child.update_hidden(point_to_options)
 
-
     def __str__(self):
-        return f'SubsetTreeNode(points = {self.points}, options = {self.options})'
+        return f"SubsetTreeNode(points = {self.points}, options = {self.options})"
 
     def __repr__(self):
         return str(self)
-
-
-
