@@ -181,14 +181,15 @@ class BoardOptionsManager:
                 continue
             sorted_options = frozenset(options)
             options_to_points[sorted_options].add(point)
-        for options, points in options_to_points.items():
-            if len(options) != len(points):
-                continue
-            for point in point_to_options:
-                if point in points:
-                    continue
-                for val in options:
-                    point_to_options[point].discard(val)
+        roots = []
+        for option_subset in sorted(options_to_points, key=lambda x: (len(x), x)):
+            points_subset = options_to_points[option_subset]
+            node = OptionsPointsTreeNode(option_subset, points_subset)
+            found_root = any([root.add_child(node) for root in roots])
+            if not found_root:
+                roots.append(node)
+        for root in roots:
+            root.update_naked(point_to_options)
 
     def handle_hidden_subset(self, point_to_options):
         options_to_points = defaultdict(set)
@@ -253,6 +254,40 @@ class PointsOptionsTreeNode:
             return
         for child in self.children:
             child.update_hidden(point_to_options)
+
+    def __str__(self):
+        return f"SubsetTreeNode(points = {self.points}, options = {self.options})"
+
+    def __repr__(self):
+        return str(self)
+
+
+class OptionsPointsTreeNode:
+    def __init__(self, options: FrozenSet[int], points: MutableSet[int]):
+        self.options: FrozenSet[int] = options
+        self.points: MutableSet[int] = points
+        self.children: List["OptionsPointsTreeNode"] = []
+        self.parent: Optional["OptionsPointsTreeNode"] = None
+
+    def add_child(self, node: "OptionsPointsTreeNode"):
+        if not self.options.issubset(node.options):
+            return False
+        found_child = any([child.add_child(node) for child in self.children])
+        if not found_child:
+            node.points.update(self.points)
+            self.children.append(node)
+            node.parent = self
+        return True
+
+    def update_naked(self, point_to_options):
+        if len(self.options) == len(self.points):
+            for point, options in point_to_options.items():
+                if point in self.points or not options:
+                    continue
+                options.difference_update(self.options)
+            return
+        for child in self.children:
+            child.update_naked(point_to_options)
 
     def __str__(self):
         return f"SubsetTreeNode(points = {self.points}, options = {self.options})"

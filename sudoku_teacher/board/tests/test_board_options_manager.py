@@ -69,6 +69,81 @@ def test_naked_pair_fail_due_to_extra(naked_subset, extra):
         )  # naked pair was not substracted because naked pair does not exists
 
 
+def test_naked_pair():
+    bom = BoardOptionsManager()
+    bom.options[0][0] = {}
+    bom.options[0][1] = {}
+    bom.options[0][2] = {2, 3, 4, 8}
+    bom.options[0][3] = {}
+    bom.options[0][4] = {}
+    bom.options[0][5] = {3, 4, 8}
+    bom.options[0][6] = {2, 3}
+    bom.options[0][7] = {}
+    bom.options[0][8] = {2, 3}
+
+    point_to_options = bom.create_points_from_row(0)
+    bom.handle_naked_subset(point_to_options)
+    assert bom.options[0][0] == {}
+    assert bom.options[0][1] == {}
+    assert bom.options[0][2] == {4, 8}
+    assert bom.options[0][3] == {}
+    assert bom.options[0][4] == {}
+    assert bom.options[0][5] == {4, 8}
+    assert bom.options[0][6] == {2, 3}
+    assert bom.options[0][7] == {}
+    assert bom.options[0][8] == {2, 3}
+
+
+def test_naked_triple():
+    bom = BoardOptionsManager()
+    bom.options[0][0] = {7, 8, 9}
+    bom.options[0][1] = {}
+    bom.options[0][2] = {7, 8}
+    bom.options[0][3] = {3, 5, 9}
+    bom.options[0][4] = {}
+    bom.options[0][5] = {5, 6, 8, 9}
+    bom.options[0][6] = {7, 9}
+    bom.options[0][7] = {}
+    bom.options[0][8] = {3, 5, 6, 7, 8, 9}
+
+    point_to_options = bom.create_points_from_row(0)
+    bom.handle_naked_subset(point_to_options)
+    assert bom.options[0][0] == {7, 8, 9}
+    assert bom.options[0][1] == {}
+    assert bom.options[0][2] == {7, 8}
+    assert bom.options[0][3] == {3, 5}
+    assert bom.options[0][4] == {}
+    assert bom.options[0][5] == {5, 6}
+    assert bom.options[0][6] == {7, 9}
+    assert bom.options[0][7] == {}
+    assert bom.options[0][8] == {3, 5, 6}
+
+
+def test_naked_quad():
+    bom = BoardOptionsManager()
+    bom.options[0][0] = {1}
+    bom.options[0][1] = {4, 5, 6}
+    bom.options[0][2] = {4, 9}
+    bom.options[0][3] = {3, 5, 6}
+    bom.options[0][4] = {3, 5, 6, 7}
+    bom.options[0][5] = {3, 5, 7}
+    bom.options[0][6] = {2, 4, 8, 9}
+    bom.options[0][7] = {2, 4}
+    bom.options[0][8] = {2, 8, 9}
+
+    point_to_options = bom.create_points_from_row(0)
+    bom.handle_naked_subset(point_to_options)
+    assert bom.options[0][0] == {1}
+    assert bom.options[0][1] == {5, 6}
+    assert bom.options[0][2] == {4, 9}
+    assert bom.options[0][3] == {3, 5, 6}
+    assert bom.options[0][4] == {3, 5, 6, 7}
+    assert bom.options[0][5] == {3, 5, 7}
+    assert bom.options[0][6] == {2, 4, 8, 9}
+    assert bom.options[0][7] == {2, 4}
+    assert bom.options[0][8] == {2, 8, 9}
+
+
 def test_hidden_pair0():
 
     bom = BoardOptionsManager()
