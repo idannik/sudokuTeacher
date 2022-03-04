@@ -189,7 +189,7 @@ class BoardOptionsManager:
             if not found_root:
                 roots.append(node)
         for root in roots:
-            root.update_naked(point_to_options)
+            update_naked(root, point_to_options)
 
     def handle_hidden_subset(self, point_to_options):
         options_to_points = defaultdict(set)
@@ -212,7 +212,7 @@ class BoardOptionsManager:
             if not found_root:
                 roots.append(node)
         for root in roots:
-            root.update_hidden(point_to_options)
+            update_hidden(root, point_to_options)
 
     def print_options(self):
         x = PrettyTable
@@ -227,70 +227,72 @@ class BoardOptionsManager:
         print(x)
 
 
-class PointsOptionsTreeNode:
-    def __init__(self, points: FrozenSet[int], options: MutableSet[int]):
-        self.points: FrozenSet[int] = points
-        self.options: MutableSet[int] = options
-        self.children: List["PointsOptionsTreeNode"] = []
-        self.parent: Optional["PointsOptionsTreeNode"] = None
+class SubsetSubsetTreeNode:
+    def __init__(self, id_subset, data_subset):
+        self.id_subset = id_subset
+        self.data_subset = data_subset
+        self.children: List["SubsetSubsetTreeNode"] = []
 
-    def add_child(self, node: "PointsOptionsTreeNode"):
-        if not self.points.issubset(node.points):
+    def add_child(self, node: "SubsetSubsetTreeNode"):
+        if not self.id_subset.issubset(node.id_subset):
             return False
         found_child = any([child.add_child(node) for child in self.children])
         if not found_child:
-            node.options.update(self.options)
+            node.data_subset.update(self.data_subset)
             self.children.append(node)
-            node.parent = self
         return True
 
-    def update_hidden(self, point_to_options):
-        if len(self.options) == len(self.points):
-            for point in self.points:
-                old_val = point_to_options[point]
-                new_val = old_val.intersection(self.options)
-                point_to_options[point].clear()
-                point_to_options[point].update(new_val)
-            return
-        for child in self.children:
-            child.update_hidden(point_to_options)
-
     def __str__(self):
-        return f"SubsetTreeNode(points = {self.points}, options = {self.options})"
+        return f"SubsetSubsetTreeNode(id = {self.id_subset}, data = {self.data_subset})"
 
     def __repr__(self):
         return str(self)
 
 
-class OptionsPointsTreeNode:
-    def __init__(self, options: FrozenSet[int], points: MutableSet[int]):
-        self.options: FrozenSet[int] = options
-        self.points: MutableSet[int] = points
-        self.children: List["OptionsPointsTreeNode"] = []
-        self.parent: Optional["OptionsPointsTreeNode"] = None
+class PointsOptionsTreeNode(SubsetSubsetTreeNode):
+    def __init__(self, points, options):
+        super().__init__(points, options)
 
-    def add_child(self, node: "OptionsPointsTreeNode"):
-        if not self.options.issubset(node.options):
-            return False
-        found_child = any([child.add_child(node) for child in self.children])
-        if not found_child:
-            node.points.update(self.points)
-            self.children.append(node)
-            node.parent = self
-        return True
+    @property
+    def points(self):
+        return self.id_subset
 
-    def update_naked(self, point_to_options):
-        if len(self.options) == len(self.points):
-            for point, options in point_to_options.items():
-                if point in self.points or not options:
-                    continue
-                options.difference_update(self.options)
-            return
-        for child in self.children:
-            child.update_naked(point_to_options)
+    @property
+    def options(self):
+        return self.data_subset
 
-    def __str__(self):
-        return f"SubsetTreeNode(points = {self.points}, options = {self.options})"
 
-    def __repr__(self):
-        return str(self)
+class OptionsPointsTreeNode(SubsetSubsetTreeNode):
+    def __init__(self, options, points):
+        super().__init__(options, points)
+
+    @property
+    def options(self):
+        return self.id_subset
+
+    @property
+    def points(self):
+        return self.data_subset
+
+
+def update_hidden(node: PointsOptionsTreeNode, point_to_options):
+    if len(node.points) == len(node.options):
+        for point in node.id_subset:
+            old_val = point_to_options[point]
+            new_val = old_val.intersection(node.options)
+            point_to_options[point].clear()
+            point_to_options[point].update(new_val)
+        return
+    for child in node.children:
+        update_hidden(child, point_to_options)
+
+
+def update_naked(node: OptionsPointsTreeNode, point_to_options):
+    if len(node.options) == len(node.points):
+        for point, options in point_to_options.items():
+            if point in node.points or not options:
+                continue
+            options.difference_update(node.options)
+        return
+    for child in node.children:
+        update_naked(child, point_to_options)
