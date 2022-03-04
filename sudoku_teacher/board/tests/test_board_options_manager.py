@@ -170,3 +170,28 @@ def test_hidden_triple1():
     assert bom.options[0][6] == {1, 3}
     assert bom.options[0][7] == {}
     assert bom.options[0][8] == {}
+
+
+def test_hidden_quad():
+    bom = BoardOptionsManager()
+    bom.options[0][0] = {1, 2, 5, 6, 7}
+    bom.options[0][1] = {2, 4, 5, 6, 7}
+    bom.options[0][2] = {1, 4, 5, 6, 7, 8}
+    bom.options[0][3] = {5, 9}
+    bom.options[0][4] = {2, 4}
+    bom.options[0][5] = {7, 8}
+    bom.options[0][6] = {3, 4, 9}
+    bom.options[0][7] = {2, 4, 5}
+    bom.options[0][8] = {2, 3, 4, 5, 9}
+
+    point_to_options = bom.create_points_from_row(0)
+    bom.handle_hidden_subset(point_to_options)
+    assert bom.options[0][0] == {1, 6, 7}
+    assert bom.options[0][1] == {6, 7}
+    assert bom.options[0][2] == {1, 6, 7, 8}
+    assert bom.options[0][3] == {5, 9}
+    assert bom.options[0][4] == {2, 4}
+    assert bom.options[0][5] == {7, 8}
+    assert bom.options[0][6] == {3, 4, 9}
+    assert bom.options[0][7] == {2, 4, 5}
+    assert bom.options[0][8] == {2, 3, 4, 5, 9}
