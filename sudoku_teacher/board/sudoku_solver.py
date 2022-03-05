@@ -8,8 +8,8 @@ class SudokuSuggester:
         self.board = board
         self.solved = False
         self.options_handler = board_options_handler or BoardOptionsManager(self.board)
-        self.options_handler.init_board_options(self.board)
-        self.options_handler.update_board_options(self.board)
+        self.options_handler.init_board_options()
+        self.options_handler.update_board_options()
 
     def stringify(self):
         return "".join(

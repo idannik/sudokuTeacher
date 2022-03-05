@@ -72,3 +72,7 @@ def update_hidden(node: PointsOptionsTreeNode, point_to_options):
         return
     for child in node.children:
         update_hidden(child, point_to_options)
+
+
+def get_square_idx(row, col):
+    return row // 3 * 3 + col // 3

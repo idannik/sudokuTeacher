@@ -1,21 +1,19 @@
 from collections import defaultdict
 from copy import deepcopy
+from typing import List
 
 from prettytable import PrettyTable
 
+from sudoku_teacher.board.board_group import BoardGroup
 from sudoku_teacher.board.helper import (
     update_naked,
     update_hidden,
     OptionsPointsTreeNode,
     PointsOptionsTreeNode,
+    get_square_idx,
 )
 
 ALL_VALS = frozenset(range(1, 10))
-
-
-def sort_items_according_to_key_lengh(key):
-    length = len(key[0])
-    return length, key
 
 
 class BoardOptionsManager:
@@ -24,22 +22,42 @@ class BoardOptionsManager:
             board = []
             for i in range(9):
                 board.append([0 for _ in range(9)])
-        if board_options is None:
-            board_options = []
-            for i in range(9):
-                board_options.append([set(ALL_VALS) for _ in range(9)])
         self.board = board
         self.options = board_options
+        if self.options is None:
+            self.init_board_options()
+        self.rows: List[BoardGroup] = [
+            self.create_board_group_from_row(row) for row in range(9)
+        ]
+        self.cols: List[BoardGroup] = [
+            self.create_board_group_from_col(col) for col in range(9)
+        ]
+        self.squares: List[BoardGroup] = [
+            self.create_board_group_from_square_by_idx(idx) for idx in range(9)
+        ]
 
-    def init_board_options(self, board):
+    def init_board_options(self):
+        self.options = []
         for i in range(9):
             row = []
             for j in range(9):
                 val = set()
-                if board[i][j] == 0:
-                    val = {1, 2, 3, 4, 5, 6, 7, 8, 9}
+                if self.board[i][j] == 0:
+                    val = set(ALL_VALS)
                 row.append(val)
             self.options.append(row)
+
+    def handle_hidden_subset(self, row, col):
+        self.rows[row].handle_hidden_subset()
+        self.cols[col].handle_hidden_subset()
+        square_idx = get_square_idx(row, col)
+        self.squares[square_idx].handle_hidden_subset()
+
+    def handle_naked_subset(self, row, col):
+        self.rows[row].handle_naked_subset()
+        self.cols[col].handle_naked_subset()
+        square_idx = get_square_idx(row, col)
+        self.squares[square_idx].handle_naked_subset()
 
     def update_board_options(self, board):
         for i in range(9):
@@ -79,22 +97,29 @@ class BoardOptionsManager:
                 if len(self.options[i][j]) == 1:
                     assert self.board[i][j] == 0
 
-    def create_points_from_row(self, row):
-        return {(row, col): self.options[row][col] for col in range(9)}
+    def create_board_group_from_row(self, row):
+        points_to_options = {(row, col): self.options[row][col] for col in range(9)}
+        return BoardGroup(points_to_options)
 
-    def create_points_from_col(self, col):
-        return {(row, col): self.options[row][col] for row in range(9)}
+    def create_board_group_from_col(self, col):
+        points_to_options = {(row, col): self.options[row][col] for row in range(9)}
+        return BoardGroup(points_to_options)
 
-    def create_points_from_square(self, row, col):
-        res = {}
+    def create_board_group_from_square_by_idx(self, idx):
+        row = (idx // 3) * 3
+        col = (idx % 3) * 3
+        return self.create_board_group_from_square_by_pos(row, col)
+
+    def create_board_group_from_square_by_pos(self, row, col):
+        points_to_options = {}
         square_start_row = row - (row % 3)
         square_start_col = col - (col % 3)
         for i in range(3):
             row = square_start_row + i
             for j in range(3):
                 col = square_start_col + j
-                res[(row, col)] = self.options[row][col]
-        return res
+                points_to_options[(row, col)] = self.options[row][col]
+        return BoardGroup(points_to_options)
 
     def update_board_options_according_to_value(self, row, col, val):
         if val == 0:
@@ -179,46 +204,6 @@ class BoardOptionsManager:
 
         self.handle_hidden_subset(point_to_options)
         self.assert_rules()
-
-    def handle_naked_subset(self, point_to_options):
-        options_to_points = defaultdict(set)
-        for point, options in point_to_options.items():
-            if len(options) <= 1:
-                continue
-            sorted_options = frozenset(options)
-            options_to_points[sorted_options].add(point)
-        roots = []
-        for option_subset in sorted(options_to_points, key=lambda x: (len(x), x)):
-            points_subset = options_to_points[option_subset]
-            node = OptionsPointsTreeNode(option_subset, points_subset)
-            found_root = any([root.add_child(node) for root in roots])
-            if not found_root:
-                roots.append(node)
-        for root in roots:
-            update_naked(root, point_to_options)
-
-    def handle_hidden_subset(self, point_to_options):
-        options_to_points = defaultdict(set)
-        for point, options in point_to_options.items():
-            for option in options:
-                options_to_points[option].add(point)
-        points_subset_to_option_subset = defaultdict(set)
-
-        for val, points in options_to_points.items():
-            key = frozenset(points)
-            points_subset_to_option_subset[key].add(val)
-
-        roots = []
-        for point_subset in sorted(
-            points_subset_to_option_subset, key=lambda x: (len(x), x)
-        ):
-            options_subset = points_subset_to_option_subset[point_subset]
-            node = PointsOptionsTreeNode(point_subset, options_subset)
-            found_root = any([root.add_child(node) for root in roots])
-            if not found_root:
-                roots.append(node)
-        for root in roots:
-            update_hidden(root, point_to_options)
 
     def print_options(self):
         x = PrettyTable
