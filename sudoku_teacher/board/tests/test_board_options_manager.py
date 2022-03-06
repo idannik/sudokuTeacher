@@ -17,6 +17,20 @@ def test_default_values():
             assert bom.options[i][j] == ALL_VALS
 
 
+def test_square1():
+    bom = BoardOptionsManager()
+    square = bom.squares[1]
+    assert (0, 3) in square.point_to_options
+    assert (0, 4) in square.point_to_options
+    assert (0, 5) in square.point_to_options
+    assert (1, 3) in square.point_to_options
+    assert (1, 4) in square.point_to_options
+    assert (1, 5) in square.point_to_options
+    assert (2, 3) in square.point_to_options
+    assert (2, 4) in square.point_to_options
+    assert (2, 5) in square.point_to_options
+
+
 @pytest.mark.parametrize(
     "idx, naked_subset",
     [(0, {2, 3}), (1, {1, 2, 3}), (2, {3, 2, 5, 4}), (3, {1, 2, 3, 4, 5, 6})],
@@ -272,3 +286,40 @@ def test_hidden_quad():
     assert bom.options[0][6] == {3, 4, 9}
     assert bom.options[0][7] == {2, 4, 5}
     assert bom.options[0][8] == {2, 3, 4, 5, 9}
+
+
+def test_pointing_subset():
+    bom = BoardOptionsManager()
+    set_set_value(bom.options[0][0], {2, 3, 5})
+    set_set_value(bom.options[0][1], {2, 3, 5})
+    set_set_value(bom.options[0][2], {2, 3, 5})
+    set_set_value(bom.options[0][3], {})
+    set_set_value(bom.options[0][4], {})
+    set_set_value(bom.options[0][5], {})
+    set_set_value(bom.options[0][6], {})
+    set_set_value(bom.options[0][7], {})
+    set_set_value(bom.options[0][8], {})
+
+    bom.handle_pointing_subset(0, 0)
+
+    # col
+    assert bom.options[0][0] == {2, 3, 5}
+    assert bom.options[0][1] == {2, 3, 5}
+    assert bom.options[0][2] == {2, 3, 5}
+    assert bom.options[0][3] == set()
+    assert bom.options[0][4] == set()
+    assert bom.options[0][5] == set()
+    assert bom.options[0][6] == set()
+    assert bom.options[0][7] == set()
+    assert bom.options[0][8] == set()
+
+    # square
+    assert bom.options[0][0] == {2, 3, 5}
+    assert bom.options[0][1] == {2, 3, 5}
+    assert bom.options[0][2] == {2, 3, 5}
+    assert bom.options[1][0] == ALL_VALS - {2, 3, 5}
+    assert bom.options[1][1] == ALL_VALS - {2, 3, 5}
+    assert bom.options[1][2] == ALL_VALS - {2, 3, 5}
+    assert bom.options[2][0] == ALL_VALS - {2, 3, 5}
+    assert bom.options[2][1] == ALL_VALS - {2, 3, 5}
+    assert bom.options[2][2] == ALL_VALS - {2, 3, 5}

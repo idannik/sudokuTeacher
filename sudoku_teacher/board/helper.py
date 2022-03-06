@@ -76,3 +76,9 @@ def update_hidden(node: PointsOptionsTreeNode, point_to_options):
 
 def get_square_idx(row, col):
     return row // 3 * 3 + col // 3
+
+
+def get_row_col_from_square_id(idx):
+    row = (idx // 3) * 3
+    col = (idx % 3) * 3
+    return col, row

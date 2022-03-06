@@ -1,4 +1,3 @@
-from collections import defaultdict
 from copy import deepcopy
 from typing import List
 
@@ -6,11 +5,8 @@ from prettytable import PrettyTable
 
 from sudoku_teacher.board.board_group import BoardGroup
 from sudoku_teacher.board.helper import (
-    update_naked,
-    update_hidden,
-    OptionsPointsTreeNode,
-    PointsOptionsTreeNode,
     get_square_idx,
+    get_row_col_from_square_id,
 )
 
 ALL_VALS = frozenset(range(1, 10))
@@ -35,6 +31,7 @@ class BoardOptionsManager:
         self.squares: List[BoardGroup] = [
             self.create_board_group_from_square_by_idx(idx) for idx in range(9)
         ]
+        self.update_board_group_neighbors()
 
     def init_board_options(self):
         self.options = []
@@ -47,6 +44,21 @@ class BoardOptionsManager:
                 row.append(val)
             self.options.append(row)
 
+    def update_board_group_neighbors(self):
+        for idx in range(9):
+            square_group = self.squares[idx]
+            row, col = get_row_col_from_square_id(idx)
+            for i in range(3):
+                row_group = self.rows[row + i]
+                sub_row = frozenset({(row + i, col + j) for j in range(3)})
+                row_group.neighbors[sub_row] = square_group
+                square_group.neighbors[sub_row] = row_group
+
+                col_group = self.cols[col + i]
+                sub_col = frozenset({(row + j, col + i) for j in range(3)})
+                col_group.neighbors[sub_col] = square_group
+                square_group.neighbors[sub_col] = col_group
+
     def handle_hidden_subset(self, row, col):
         self.rows[row].handle_hidden_subset()
         self.cols[col].handle_hidden_subset()
@@ -58,6 +70,12 @@ class BoardOptionsManager:
         self.cols[col].handle_naked_subset()
         square_idx = get_square_idx(row, col)
         self.squares[square_idx].handle_naked_subset()
+
+    def handle_pointing_subset(self, row, col):
+        self.rows[row].handle_pointing_subset()
+        self.cols[col].handle_pointing_subset()
+        square_idx = get_square_idx(row, col)
+        self.squares[square_idx].handle_pointing_subset()
 
     def update_board_options(self, board):
         for i in range(9):
@@ -106,8 +124,7 @@ class BoardOptionsManager:
         return BoardGroup(points_to_options)
 
     def create_board_group_from_square_by_idx(self, idx):
-        row = (idx // 3) * 3
-        col = (idx % 3) * 3
+        col, row = get_row_col_from_square_id(idx)
         return self.create_board_group_from_square_by_pos(row, col)
 
     def create_board_group_from_square_by_pos(self, row, col):

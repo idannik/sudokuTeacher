@@ -1,3 +1,4 @@
+import itertools
 from collections import defaultdict
 
 from sudoku_teacher.board.helper import (
@@ -56,3 +57,28 @@ class BoardGroup:
                 roots.append(node)
         for root in roots:
             update_hidden(root, self.point_to_options)
+
+    def handle_pointing_subset(self):
+
+        for neighbor, group in self.neighbors.items():
+            values = set(
+                itertools.chain.from_iterable(
+                    [self.point_to_options[(i, j)] for i, j in neighbor]
+                )
+            )
+            other_neighbors = {n for n in self.neighbors if n != neighbor}
+            for other in other_neighbors:
+                other_values = set(
+                    itertools.chain.from_iterable(
+                        [self.point_to_options[(i, j)] for i, j in other]
+                    )
+                )
+                values.difference_update(other_values)
+            if values:
+                group.remove_except(values, neighbor)
+
+    def remove_except(self, values, neighbor):
+        for point, value in self.point_to_options.items():
+            if point in neighbor:
+                continue
+            self.point_to_options[point].difference_update(values)
