@@ -1,6 +1,7 @@
 import pytest
 
 from sudoku_teacher.board.board_options_manager import BoardOptionsManager, ALL_VALS
+from sudoku_teacher.board.helper import session
 
 
 def set_set_value(s, new_val):
@@ -97,7 +98,6 @@ def test_naked_pair():
     set_set_value(bom.options[0][6], {2, 3})
     set_set_value(bom.options[0][7], set())
     set_set_value(bom.options[0][8], {2, 3})
-
     bom.handle_naked_subset(0, 0)
 
     assert bom.options[0][0] == set()

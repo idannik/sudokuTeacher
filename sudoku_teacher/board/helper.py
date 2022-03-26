@@ -1,6 +1,11 @@
+from copy import deepcopy
 from typing import List, Type, TypeVar
 
+from django.contrib.sessions.backends.db import SessionStore
+
 T = TypeVar("T", bound="SubsetSubsetTreeNode")
+
+session = SessionStore()
 
 
 class SubsetSubsetTreeNode:
@@ -38,15 +43,36 @@ class OptionsPointsTreeNode(SubsetSubsetTreeNode):
         return self.data_subset
 
 
-def update_naked(node: OptionsPointsTreeNode, point_to_options):
+def update_naked(node: OptionsPointsTreeNode, point_to_options, name: str):
     if len(node.options) == len(node.points):
         for point, options in point_to_options.items():
             if point in node.points or not options:
                 continue
+            orig_options = deepcopy(options)
             options.difference_update(node.options)
+            if options != orig_options:
+                update_move(point, node, options, orig_options, name, "naked")
+
         return
     for child in node.children:
-        update_naked(child, point_to_options)
+        update_naked(child, point_to_options, name)
+
+
+def update_move(point, node, new_options, orig_options, name, reason, neighbor=""):
+    if new_options == orig_options:
+        return
+    session.setdefault("updates", list()).append(
+        {
+            "point": point,
+            "orig_options": sorted(orig_options),
+            "new_options": sorted(new_options),
+            "reason": reason,
+            "reason_points": sorted(node.points) if node else [],
+            "reason_options": sorted(node.options) if node else [],
+            "rule_loc": name,
+            "neighbor": neighbor,
+        }
+    )
 
 
 class PointsOptionsTreeNode(SubsetSubsetTreeNode):
@@ -62,16 +88,18 @@ class PointsOptionsTreeNode(SubsetSubsetTreeNode):
         return self.data_subset
 
 
-def update_hidden(node: PointsOptionsTreeNode, point_to_options):
+def update_hidden(node: PointsOptionsTreeNode, point_to_options, name):
     if len(node.points) == len(node.options):
         for point in node.id_subset:
-            old_val = point_to_options[point]
-            new_val = old_val.intersection(node.options)
+            orig_options = deepcopy(point_to_options[point])
+            new_options = orig_options.intersection(node.options)
             point_to_options[point].clear()
-            point_to_options[point].update(new_val)
+            point_to_options[point].update(new_options)
+            update_move(point, node, new_options, orig_options, name, "hidden")
+
         return
     for child in node.children:
-        update_hidden(child, point_to_options)
+        update_hidden(child, point_to_options, name)
 
 
 def get_square_idx(row, col):

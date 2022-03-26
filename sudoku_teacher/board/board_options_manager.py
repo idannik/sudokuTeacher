@@ -117,11 +117,11 @@ class BoardOptionsManager:
 
     def create_board_group_from_row(self, row):
         points_to_options = {(row, col): self.options[row][col] for col in range(9)}
-        return BoardGroup(points_to_options)
+        return BoardGroup(points_to_options, name=f"row-{row}")
 
     def create_board_group_from_col(self, col):
         points_to_options = {(row, col): self.options[row][col] for row in range(9)}
-        return BoardGroup(points_to_options)
+        return BoardGroup(points_to_options, name=f"col-{col}")
 
     def create_board_group_from_square_by_idx(self, idx):
         col, row = get_row_col_from_square_id(idx)
@@ -136,7 +136,7 @@ class BoardOptionsManager:
             for j in range(3):
                 col = square_start_col + j
                 points_to_options[(row, col)] = self.options[row][col]
-        return BoardGroup(points_to_options)
+        return BoardGroup(points_to_options, name=f"square-{row}-{col}")
 
     def update_board_options_according_to_value(self, row, col, val):
         if val == 0:

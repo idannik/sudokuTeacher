@@ -1,18 +1,24 @@
 import itertools
 from collections import defaultdict
+from copy import deepcopy
+
+from django.contrib.sessions.backends.db import SessionStore
 
 from sudoku_teacher.board.helper import (
     PointsOptionsTreeNode,
     update_hidden,
     OptionsPointsTreeNode,
     update_naked,
+    update_move,
+    session,
 )
 
 
 class BoardGroup:
-    def __init__(self, points_to_options):
+    def __init__(self, points_to_options, name):
         self.point_to_options = points_to_options
         self.neighbors = {}
+        self.name = name
 
     def add_neighbor(self, points, neighbor: "BoardGroup"):
         if not points.subset(self.point_to_options.keys()):
@@ -34,7 +40,7 @@ class BoardGroup:
             if not found_root:
                 roots.append(node)
         for root in roots:
-            update_naked(root, self.point_to_options)
+            update_naked(root, self.point_to_options, self.name)
 
     def handle_hidden_subset(self):
         options_to_points = defaultdict(set)
@@ -56,7 +62,7 @@ class BoardGroup:
             if not found_root:
                 roots.append(node)
         for root in roots:
-            update_hidden(root, self.point_to_options)
+            update_hidden(root, self.point_to_options, self.name)
 
     def handle_pointing_subset(self):
 
@@ -75,10 +81,20 @@ class BoardGroup:
                 )
                 values.difference_update(other_values)
             if values:
-                group.remove_except(values, neighbor)
+                group.remove_except(values, neighbor, self.name)
 
-    def remove_except(self, values, neighbor):
+    def remove_except(self, values, neighbor, name):
         for point, value in self.point_to_options.items():
             if point in neighbor:
                 continue
+            orig_options = deepcopy(self.point_to_options[point])
             self.point_to_options[point].difference_update(values)
+            update_move(
+                point=point,
+                node=None,
+                new_options=self.point_to_options[point],
+                orig_options=orig_options,
+                name=self.name,
+                reason="pointing",
+                neighbor=name,
+            )
