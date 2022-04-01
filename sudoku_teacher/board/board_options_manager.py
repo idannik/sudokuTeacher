@@ -7,6 +7,9 @@ from sudoku_teacher.board.board_group import BoardGroup
 from sudoku_teacher.board.helper import (
     get_square_idx,
     get_row_col_from_square_id,
+    get_square_points,
+    session_update_list,
+    get_relevant_points,
 )
 
 ALL_VALS = frozenset(range(1, 10))
@@ -77,22 +80,23 @@ class BoardOptionsManager:
         square_idx = get_square_idx(row, col)
         self.squares[square_idx].handle_pointing_subset()
 
-    def update_board_options(self, board):
+    def eliminate_options_according_to_board(self):
+        points = set()
         for i in range(9):
             for j in range(9):
-                if board[i][j] > 0:
-                    options = deepcopy(self.options)
-                    self.update_board_options_according_to_value(i, j, val=board[i][j])
+                if self.board[i][j] > 0:
+                    self.update_board_options_according_to_value(i, j)
                     self.assert_rules()
-        for i in range(9):
-            self.update_board_options_according_to_row_group(i)
-            self.update_board_options_according_to_col_group(i)
+                else:
+                    points.add((i, j))
+        for point in points:
+            session_update_list.append({"point": point, "reason": "initial update"})
 
     def update_board_options_according_to_cell(self, row, col, val=0):
         options = deepcopy(self.options)
         self.assert_rules()
 
-        self.update_board_options_according_to_value(row, col, val)
+        self.update_board_options_according_to_value(row, col)
         options1 = deepcopy(self.options[row][col])
         self.assert_rules()
         self.update_board_options_according_to_row_group(row)
@@ -128,27 +132,24 @@ class BoardOptionsManager:
         return self.create_board_group_from_square_by_pos(row, col)
 
     def create_board_group_from_square_by_pos(self, row, col):
-        points_to_options = {}
-        square_start_row = row - (row % 3)
-        square_start_col = col - (col % 3)
-        for i in range(3):
-            row = square_start_row + i
-            for j in range(3):
-                col = square_start_col + j
-                points_to_options[(row, col)] = self.options[row][col]
+        points_to_options = self.get_square_points_to_options(row, col)
         return BoardGroup(points_to_options, name=f"square-{row}-{col}")
 
-    def update_board_options_according_to_value(self, row, col, val):
+    def get_square_points_to_options(self, row, col):
+        points_to_options = {}
+        for row, col in get_square_points(row, col):
+            points_to_options[(row, col)] = self.options[row][col]
+        return points_to_options
+
+    def update_board_options_according_to_value(self, row, col):
+        val = self.board[row][col]
         if val == 0:
             return
-        for i in range(9):
-            self.options[i][col].discard(val)
-            self.options[row][i].discard(val)
-        square_start_row = row - (row % 3)
-        square_start_col = col - (col % 3)
-        for i in range(3):
-            for j in range(3):
-                self.options[square_start_row + i][square_start_col + j].discard(val)
+        for point in get_relevant_points(row, col):
+            self.get_options(point).discard(val)
+
+    def get_options(self, point):
+        return self.options[point[0]][point[1]]
 
     def next_step(self):
         res = set()
@@ -233,3 +234,15 @@ class BoardOptionsManager:
                 ]
             )
         print(x)
+
+    def solve_board(self):
+        self.eliminate_options_according_to_board()
+        reason_idx = 0
+        while reason_idx < len(session_update_list):
+            self.run_rules_on_point(session_update_list[reason_idx]["point"])
+            reason_idx += 1
+
+    def run_rules_on_point(self, point):
+        self.handle_naked_subset(point[0], point[1])
+        self.handle_hidden_subset(point[0], point[1])
+        self.handle_pointing_subset(point[0], point[1])

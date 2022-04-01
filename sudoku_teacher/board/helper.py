@@ -3,9 +3,12 @@ from typing import List, Type, TypeVar
 
 from django.contrib.sessions.backends.db import SessionStore
 
+SESSION_KEY = "updates"
+
 T = TypeVar("T", bound="SubsetSubsetTreeNode")
 
 session = SessionStore()
+session_update_list = session.setdefault(SESSION_KEY, list())
 
 
 class SubsetSubsetTreeNode:
@@ -61,7 +64,7 @@ def update_naked(node: OptionsPointsTreeNode, point_to_options, name: str):
 def update_move(point, node, new_options, orig_options, name, reason, neighbor=""):
     if new_options == orig_options:
         return
-    session.setdefault("updates", list()).append(
+    session_update_list.append(
         {
             "point": point,
             "orig_options": sorted(orig_options),
@@ -106,7 +109,28 @@ def get_square_idx(row, col):
     return row // 3 * 3 + col // 3
 
 
+def get_square_points(row, col):
+    square_start_row = row - (row % 3)
+    square_start_col = col - (col % 3)
+    for i in range(3):
+        row = square_start_row + i
+        for j in range(3):
+            col = square_start_col + j
+            yield row, col
+
+
 def get_row_col_from_square_id(idx):
     row = (idx // 3) * 3
     col = (idx % 3) * 3
     return col, row
+
+
+def get_relevant_points(row, col):
+    for i in range(9):
+        if i != row:
+            yield i, col
+        if i != col:
+            yield row, i
+    for i, j in get_square_points(row, col):
+        if i != row and j != col:
+            yield i, j
