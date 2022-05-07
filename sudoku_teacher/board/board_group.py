@@ -28,7 +28,7 @@ class BoardGroup:
     def handle_naked_subset(self):
         options_to_points = defaultdict(set)
         for point, options in self.point_to_options.items():
-            if len(options) <= 1:
+            if not options:
                 continue
             sorted_options = frozenset(options)
             options_to_points[sorted_options].add(point)

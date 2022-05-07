@@ -122,7 +122,7 @@ def get_square_points(row, col):
 def get_row_col_from_square_id(idx):
     row = (idx // 3) * 3
     col = (idx % 3) * 3
-    return col, row
+    return row, col
 
 
 def get_relevant_points(row, col):

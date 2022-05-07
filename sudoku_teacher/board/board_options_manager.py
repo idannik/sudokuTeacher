@@ -36,6 +36,12 @@ class BoardOptionsManager:
         ]
         self.update_board_group_neighbors()
 
+    def options_for_debug(self):
+        p = []
+        for row in self.options:
+            p.append([list(a) for a in row])
+        return p
+
     def init_board_options(self):
         self.options = []
         for i in range(9):
@@ -128,7 +134,7 @@ class BoardOptionsManager:
         return BoardGroup(points_to_options, name=f"col-{col}")
 
     def create_board_group_from_square_by_idx(self, idx):
-        col, row = get_row_col_from_square_id(idx)
+        row, col = get_row_col_from_square_id(idx)
         return self.create_board_group_from_square_by_pos(row, col)
 
     def create_board_group_from_square_by_pos(self, row, col):
@@ -237,12 +243,15 @@ class BoardOptionsManager:
 
     def solve_board(self):
         self.eliminate_options_according_to_board()
+        self.orig_options = deepcopy(self.options)
         reason_idx = 0
         while reason_idx < len(session_update_list):
             self.run_rules_on_point(session_update_list[reason_idx]["point"])
             reason_idx += 1
 
     def run_rules_on_point(self, point):
+        old_options = deepcopy(self.options)
         self.handle_naked_subset(point[0], point[1])
         self.handle_hidden_subset(point[0], point[1])
         self.handle_pointing_subset(point[0], point[1])
+

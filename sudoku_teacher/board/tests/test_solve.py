@@ -39,3 +39,4 @@ def test_solve0():
     board = Sudoku().board
     bom = BoardOptionsManager(board)
     bom.solve_board()
+    a=2
