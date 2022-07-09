@@ -167,6 +167,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     const update_board = (message) => {
+        console.log(message)
+
         const board = message['board']
         const id = message["id"]
         const pencil_marks = message['pencil_marks']

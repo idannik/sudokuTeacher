@@ -15,16 +15,14 @@ from sudoku_teacher.board.helper import (
 ALL_VALS = frozenset(range(1, 10))
 
 
-class BoardOptionsManager:
-    def __init__(self, board=None, board_options=None):
+class BoardSolver:
+    def __init__(self, board=None):
         if board is None:
             board = []
             for i in range(9):
                 board.append([0 for _ in range(9)])
         self.board = board
-        self.options = board_options
-        if self.options is None:
-            self.init_board_options()
+        self.init_board_options()
         self.rows: List[BoardGroup] = [
             self.create_board_group_from_row(row) for row in range(9)
         ]
@@ -95,8 +93,6 @@ class BoardOptionsManager:
                     self.assert_rules()
                 else:
                     points.add((i, j))
-        for point in points:
-            session_update_list.append({"point": point, "reason": "initial update"})
 
     def update_board_options_according_to_cell(self, row, col, val=0):
         options = deepcopy(self.options)
@@ -152,7 +148,13 @@ class BoardOptionsManager:
         if val == 0:
             return
         for point in get_relevant_points(row, col):
-            self.get_options(point).discard(val)
+            if val in self.get_options(point):
+                self.get_options(point).discard(val)
+                session_update_list.append({"key": 'initial',
+                                            "point": point,
+                                            "new_options": list(self.get_options(point)),
+                                            "reason_points": [[row, col]],
+                                            "removed_option": val})
 
     def get_options(self, point):
         return self.options[point[0]][point[1]]
@@ -199,7 +201,6 @@ class BoardOptionsManager:
 
     def update_board_options_according_to_row_group(self, row):
         point_to_options = self.create_points_from_row(row)
-        old_point_to_options = deepcopy(point_to_options)
 
         self.handle_naked_subset(point_to_options)
         self.assert_rules()
@@ -209,10 +210,7 @@ class BoardOptionsManager:
 
     def update_board_options_according_to_col_group(self, col):
         point_to_options = self.create_points_from_col(col)
-        old_point_to_options = deepcopy(point_to_options)
         self.handle_naked_subset(point_to_options)
-        old_point_to_options2 = deepcopy(point_to_options)
-
         self.assert_rules()
 
         self.handle_hidden_subset(point_to_options)
@@ -250,8 +248,6 @@ class BoardOptionsManager:
             reason_idx += 1
 
     def run_rules_on_point(self, point):
-        old_options = deepcopy(self.options)
         self.handle_naked_subset(point[0], point[1])
         self.handle_hidden_subset(point[0], point[1])
         self.handle_pointing_subset(point[0], point[1])
-

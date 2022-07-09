@@ -66,10 +66,10 @@ def update_move(point, node, new_options, orig_options, name, reason, neighbor="
         return
     session_update_list.append(
         {
+            "key": reason,
             "point": point,
             "orig_options": sorted(orig_options),
             "new_options": sorted(new_options),
-            "reason": reason,
             "reason_points": sorted(node.points) if node else [],
             "reason_options": sorted(node.options) if node else [],
             "rule_loc": name,

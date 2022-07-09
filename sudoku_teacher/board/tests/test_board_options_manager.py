@@ -1,6 +1,6 @@
 import pytest
 
-from sudoku_teacher.board.board_options_manager import BoardOptionsManager, ALL_VALS
+from sudoku_teacher.board.board_solver import BoardSolver, ALL_VALS
 from sudoku_teacher.board.helper import session
 
 
@@ -11,7 +11,7 @@ def set_set_value(s, new_val):
 
 
 def test_default_values():
-    bom = BoardOptionsManager()
+    bom = BoardSolver()
     for i in range(9):
         for j in range(9):
             assert bom.board[i][j] == 0
@@ -19,7 +19,7 @@ def test_default_values():
 
 
 def test_square1():
-    bom = BoardOptionsManager()
+    bom = BoardSolver()
     square = bom.squares[1]
     assert (0, 3) in square.point_to_options
     assert (0, 4) in square.point_to_options
@@ -37,7 +37,7 @@ def test_square1():
     [(0, {2, 3}), (1, {1, 2, 3}), (2, {3, 2, 5, 4}), (3, {1, 2, 3, 4, 5, 6})],
 )
 def test_naked_pair_from_row(idx, naked_subset):
-    bom = BoardOptionsManager()
+    bom = BoardSolver()
     for i in range(len(naked_subset)):
         set_set_value(bom.options[idx][i], naked_subset)
 
@@ -54,7 +54,7 @@ def test_naked_pair_from_row(idx, naked_subset):
     [(0, {2, 3}), (1, {1, 2, 3}), (2, {3, 2, 5, 4}), (3, {1, 2, 3, 4, 5, 6})],
 )
 def test_naked_pair_from_col(idx, naked_subset):
-    bom = BoardOptionsManager()
+    bom = BoardSolver()
     for i in range(len(naked_subset)):
         set_set_value(bom.options[i][idx], naked_subset)
 
@@ -71,7 +71,7 @@ def test_naked_pair_from_col(idx, naked_subset):
     [({2, 3}, 9), ({1, 2, 3}, 9), ({3, 2, 5, 4}, 9), ({1, 2, 3, 4, 5, 6}, 9)],
 )
 def test_naked_pair_fail_due_to_extra(naked_subset, extra):
-    bom = BoardOptionsManager()
+    bom = BoardSolver()
     for i in range(len(naked_subset)):
         set_set_value(bom.options[0][i], naked_subset)
     set_set_value(bom.options[0][0], naked_subset | {extra})
@@ -88,7 +88,7 @@ def test_naked_pair_fail_due_to_extra(naked_subset, extra):
 
 
 def test_naked_pair():
-    bom = BoardOptionsManager()
+    bom = BoardSolver()
     set_set_value(bom.options[0][0], set())
     set_set_value(bom.options[0][1], set())
     set_set_value(bom.options[0][2], {2, 3, 4, 8})
@@ -112,7 +112,7 @@ def test_naked_pair():
 
 
 def test_naked_triple():
-    bom = BoardOptionsManager()
+    bom = BoardSolver()
     set_set_value(bom.options[0][0], {7, 8, 9})
     set_set_value(bom.options[0][1], set())
     set_set_value(bom.options[0][2], {7, 8})
@@ -136,7 +136,7 @@ def test_naked_triple():
 
 
 def test_naked_quad():
-    bom = BoardOptionsManager()
+    bom = BoardSolver()
     set_set_value(bom.options[0][0], {1})
     set_set_value(bom.options[0][1], {4, 5, 6})
     set_set_value(bom.options[0][2], {4, 9})
@@ -162,7 +162,7 @@ def test_naked_quad():
 
 def test_hidden_pair0():
 
-    bom = BoardOptionsManager()
+    bom = BoardSolver()
     set_set_value(bom.options[0][0], {1, 3, 7, 8})
     set_set_value(bom.options[0][1], {1, 3, 7, 8})
     set_set_value(bom.options[0][2], set())
@@ -188,7 +188,7 @@ def test_hidden_pair0():
 
 def test_hidden_pair1():
 
-    bom = BoardOptionsManager()
+    bom = BoardSolver()
     set_set_value(bom.options[0][0], set())
     set_set_value(bom.options[0][1], set())
     set_set_value(bom.options[0][2], {1, 5, 6, 8})
@@ -214,7 +214,7 @@ def test_hidden_pair1():
 
 def test_hidden_triple0():
 
-    bom = BoardOptionsManager()
+    bom = BoardSolver()
     set_set_value(bom.options[0][0], set())
     set_set_value(bom.options[0][1], set())
     set_set_value(bom.options[0][2], {1, 2, 4, 5})
@@ -239,7 +239,7 @@ def test_hidden_triple0():
 
 
 def test_hidden_triple1():
-    bom = BoardOptionsManager()
+    bom = BoardSolver()
     set_set_value(bom.options[0][0], {1, 3, 7, 8})
     set_set_value(bom.options[0][1], set())
     set_set_value(bom.options[0][2], {1, 2, 6, 7, 8})
@@ -264,7 +264,7 @@ def test_hidden_triple1():
 
 
 def test_hidden_quad():
-    bom = BoardOptionsManager()
+    bom = BoardSolver()
     set_set_value(bom.options[0][0], {1, 2, 5, 6, 7})
     set_set_value(bom.options[0][1], {2, 4, 5, 6, 7})
     set_set_value(bom.options[0][2], {1, 4, 5, 6, 7, 8})
@@ -289,7 +289,7 @@ def test_hidden_quad():
 
 
 def test_pointing_subset():
-    bom = BoardOptionsManager()
+    bom = BoardSolver()
     set_set_value(bom.options[0][0], {2, 3, 5})
     set_set_value(bom.options[0][1], {2, 3, 5})
     set_set_value(bom.options[0][2], {2, 3, 5})

@@ -1,6 +1,6 @@
 import pytest
 
-from sudoku_teacher.board.board_options_manager import BoardOptionsManager, ALL_VALS
+from sudoku_teacher.board.board_solver import BoardSolver, ALL_VALS
 from sudoku_teacher.board.helper import session_update_list
 from sudoku_teacher.board.sudoku_loader import Sudoku
 
@@ -15,7 +15,7 @@ def test_eliminate_options_according_to_board(row, col, value):
     for i in range(9):
         board.append([0 for _ in range(9)])
     board[row][col] = value
-    bom = BoardOptionsManager(board)
+    bom = BoardSolver(board)
     bom.eliminate_options_according_to_board()
 
     new_options = ALL_VALS - {value}
@@ -37,6 +37,6 @@ def test_eliminate_options_according_to_board(row, col, value):
 def test_solve0():
     session_update_list.clear()
     board = Sudoku().board
-    bom = BoardOptionsManager(board)
+    bom = BoardSolver(board)
     bom.solve_board()
     a=2
